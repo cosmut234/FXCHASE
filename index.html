@@ -29,39 +29,39 @@
             z-index: 0;
             overflow: hidden;
         }
-        
-        .bg-reflections::before {
-            content: '';
+
+        .wave-line {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 30% 30%, 
-                    rgba(255,255,255,0.05) 0%, 
-                    transparent 20%),
-                linear-gradient(45deg, 
-                    rgba(255,255,255,0.02) 0%, 
-                    rgba(255,255,255,0) 50%,
-                    rgba(255,255,255,0.02) 100%);
-            animation: flow 30s linear infinite;
-            transform-origin: center;
+            stroke-linecap: round;
+            stroke-width: 1.5;
+            stroke: url(#metallic-gradient);
+            fill: none;
+            filter: drop-shadow(0 0 3px rgba(255,255,255,0.2));
+            animation: waveFlow 20s infinite ease-in-out;
         }
-        
-        .bg-reflections::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                135deg,
-                rgba(255,255,255,0.01) 0%,
-                rgba(255,255,255,0.005) 50%,
-                rgba(255,255,255,0.01) 100%);
-            animation: shine 20s linear infinite;
+
+        @keyframes waveFlow {
+            0% {
+                transform: translateX(0) translateY(0);
+            }
+            50% {
+                transform: translateX(10%) translateY(5%);
+            }
+            100% {
+                transform: translateX(0) translateY(0);
+            }
+        }
+
+        .wave-line:nth-child(2) {
+            stroke-width: 1;
+            animation-delay: -5s;
+            animation-duration: 25s;
+        }
+
+        .wave-line:nth-child(3) {
+            stroke-width: 2;
+            animation-delay: -10s;
+            animation-duration: 30s;
         }
         
         @keyframes flow {
@@ -85,33 +85,12 @@
             }
         }
         
-        .metallic-shape {
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(ellipse at center, 
-                rgba(180,180,180,0.6) 0%,
-                rgba(140,140,140,0.4) 50%,
-                rgba(80,80,80,0.2) 100%);
-            filter: blur(1px);
-            opacity: 0.5;
-            animation: float 15s infinite ease-in-out;
-            box-shadow: 
-                0 0 15px rgba(255,255,255,0.05),
-                inset 0 0 15px rgba(255,255,255,0.05);
-        }
-        
-        @keyframes float {
+        @keyframes waveOpacity {
             0%, 100% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            25% {
-                transform: translate(20px, 10px) rotate(5deg);
+                opacity: 0.6;
             }
             50% {
-                transform: translate(10px, 20px) rotate(-5deg);
-            }
-            75% {
-                transform: translate(-10px, 10px) rotate(5deg);
+                opacity: 0.9;
             }
         }
         
@@ -188,7 +167,21 @@
     </style>
 </head>
 <body class="relative">
-    <div class="bg-reflections"></div>
+    <div class="bg-reflections">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="metallic-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#e0e0e0" stop-opacity="0.8" />
+                    <stop offset="50%" stop-color="#ffffff" stop-opacity="1" />
+                    <stop offset="100%" stop-color="#e0e0e0" stop-opacity="0.8" />
+                </linearGradient>
+            </defs>
+            
+            <path class="wave-line" d="M-100,150 C50,50 150,250 300,150 C450,50 550,250 700,150 C850,50 950,250 1100,150" />
+            <path class="wave-line" d="M-100,250 C100,150 200,350 400,250 C600,150 700,350 900,250 C1100,150 1200,350 1400,250" />
+            <path class="wave-line" d="M-100,50 C150,150 250,-50 500,50 C750,150 850,-50 1100,50" />
+        </svg>
+    </div>
     
     <main class="relative z-10 h-screen flex flex-col justify-center items-center text-center px-4">
         <div class="max-w-4xl mx-auto">
@@ -233,40 +226,30 @@
                 shine.style.animation = 'animate-shine 2s';
             }, 7000);
 
-            // Create metallic shapes
-            const bgReflections = document.querySelector('.bg-reflections');
-            const shapeCount = Math.floor(window.innerWidth / 50);
-            
-            for (let i = 0; i < shapeCount; i++) {
-                const shape = document.createElement('div');
-                shape.className = 'metallic-shape';
+            // Add more wave lines dynamically
+            const svg = document.querySelector('.bg-reflections svg');
+            for (let i = 0; i < 3; i++) {
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute('class', 'wave-line');
                 
-                // Random properties
-                const size = Math.random() * 100 + 50;
-                const posX = Math.random() * 100;
-                const posY = Math.random() * 100;
-                const delay = Math.random() * 15;
-                const duration = Math.random() * 15 + 10;
+                // Generate random wave path using Bezier curves
+                const yPos = Math.random() * 100 + 50;
+                let pathData = `M-100,${yPos} `;
+                for (let x = 0; x < 5; x++) {
+                    const cp1x = x * 200 + Math.random() * 100 - 50;
+                    const cp1y = yPos + (Math.random() * 100 - 50);
+                    const cp2x = x * 200 + Math.random() * 100;
+                    const cp2y = yPos + (Math.random() * 100 - 50);
+                    const endX = (x + 1) * 200;
+                    const endY = yPos + (Math.random() * 50 - 25);
+                    pathData += `C${cp1x},${cp1y} ${cp2x},${cp2y} ${endX},${endY} `;
+                }
                 
-                shape.style.width = `${size}px`;
-                shape.style.height = `${size}px`;
-                shape.style.left = `${posX}%`;
-                shape.style.top = `${posY}%`;
-                shape.style.animationDelay = `${delay}s`;
-                shape.style.animationDuration = `${duration}s`;
-                
-                bgReflections.appendChild(shape);
+                path.setAttribute('d', pathData);
+                path.style.animationDelay = `${Math.random() * 20}s`;
+                path.style.animationDuration = `${15 + Math.random() * 15}s`;
+                svg.appendChild(path);
             }
-
-            // Responsive adjustment
-            window.addEventListener('resize', () => {
-                const shapes = document.querySelectorAll('.metallic-shape');
-                shapes.forEach(shape => {
-                    const newSize = Math.random() * 100 + 50;
-                    shape.style.width = `${newSize}px`;
-                    shape.style.height = `${newSize}px`;
-                });
-            });
         });
     </script>
 </body>
